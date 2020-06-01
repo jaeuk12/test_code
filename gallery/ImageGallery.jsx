@@ -22,6 +22,7 @@ class ImageGallery extends Component {
             isResize: false
         };
 
+        this.resize = this.resize.bind(this);
         this.onResize = this.onResize.bind(this);
     }
 
@@ -47,6 +48,52 @@ class ImageGallery extends Component {
 
     componentWillUnmount() {
         window.removeEventListener("resize", this.onResize, false);
+    }
+
+    // 리사이즈
+    resize(vw, vh, dw, dh, point) {
+        let cAspect = 0;
+        let iAspect = 0;
+        const result = {};
+
+        if (!dw) {
+            dw = 1;
+        }
+
+        if (!dh) {
+            dh = 1;
+        }
+
+        result.width = dw;
+        result.height = dh;
+
+        if (point) {
+            cAspect = dh / dw;
+            iAspect = vh / vw;
+        } else {
+            cAspect = dw / dh;
+            iAspect = vw / vh;
+        }
+
+        if (iAspect === cAspect) {
+            if (point) {
+                result.width = dw;
+                result.height = dw;
+            } else {
+                result.width = dh;
+                result.height = dh;
+            }
+        } else if (point) {
+            const h = (vh / vw) * dw;
+            result.height = Math.round(h);
+            result.float = h;
+        } else {
+            const w = (vw / vh) * dh;
+            result.width = Math.round(w);
+            result.float = w;
+        }
+
+        return result;
     }
 
     onResize() {
@@ -88,7 +135,7 @@ class ImageGallery extends Component {
 
         for (let i = 0; i < length; i += 1) {
             const image = images[i];
-            const defaultResize = utils.resize(image.width, image.height, undefined, defaultHeight);
+            const defaultResize = this.resize(image.width, image.height, undefined, defaultHeight);
             const isLast = i === length - 1;
 
             image.resize_width = defaultResize.float;
@@ -117,9 +164,9 @@ class ImageGallery extends Component {
                 const count = (Math.abs(startIndex - endIndex) + 1);
 
                 if (isLast && count < lastCount) {
-                    lineResize = utils.resize(lastWidth, defaultHeight, galleryWidth - (lastCount * defaultMargin), undefined, true);
+                    lineResize = this.resize(lastWidth, defaultHeight, galleryWidth - (lastCount * defaultMargin), undefined, true);
                 } else {
-                    lineResize = utils.resize(imagesWidth, defaultHeight, galleryWidth - (count * defaultMargin), undefined, true);
+                    lineResize = this.resize(imagesWidth, defaultHeight, galleryWidth - (count * defaultMargin), undefined, true);
                     lastCount = count;
                     lastWidth = imagesWidth;
                 }
@@ -140,10 +187,10 @@ class ImageGallery extends Component {
                         const p = rImage.width > rImage.height;
                         const defHeight = defaultImageHeight || defaultHeight;
 
-                        defaultThumb = utils.resize(rImage.width, rImage.height, p ? undefined : defHeight, p ? defHeight : undefined, !p);
+                        defaultThumb = this.resize(rImage.width, rImage.height, p ? undefined : defHeight, p ? defHeight : undefined, !p);
                     } else {
-                        rsResize = utils.resize(rImage.width, rImage.height, undefined, lineResize.float);
-                        defaultThumb = utils.resize(rImage.width, rImage.height, undefined, defaultImageHeight || lineResize.float);
+                        rsResize = this.resize(rImage.width, rImage.height, undefined, lineResize.float);
+                        defaultThumb = this.resize(rImage.width, rImage.height, undefined, defaultImageHeight || lineResize.float);
                     }
 
                     rImage.thumb_width = defaultThumb.width;
